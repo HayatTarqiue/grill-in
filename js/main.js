@@ -113,13 +113,37 @@
     var v0 = videos[0];
     if (!v0.canPlayType || !v0.canPlayType("video/mp4")) return;
 
-    var PLAYLIST = ["assets/video/burger.mp4", "assets/video/grill.mp4", "assets/video/pizza.mp4"];
+    // A clip can be one file, or { wide, narrow } when its framing only works
+    // on one screen shape: the top-down pizza-share table crops to a plain
+    // pizza close-up on portrait phones, so phones get a face + slice clip.
+    // narrowPos re-aims the crop on phones, where only ~26% of a 16:9 frame's
+    // width is visible: the eater's mouth sits left of centre in pizza-eat.
+    // narrowStart skips its first seconds (mostly sleeve/hands in that crop)
+    // so phones open straight on the bite.
+    var PLAYLIST = [
+      "assets/video/burger.mp4",
+      { wide: "assets/video/pizza-share.mp4", narrow: "assets/video/pizza-eat.mp4", narrowPos: "25% 40%", narrowStart: 6 },
+      "assets/video/pizza.mp4"
+    ];
+    var NARROW = window.matchMedia("(max-width: 700px)");
+    // Resolved when each clip loads (not once at startup), so a phone rotated
+    // mid-session gets the right version on the next loop.
+    function clipSrc(i) {
+      var c = PLAYLIST[i];
+      return typeof c === "string" ? c : (NARROW.matches ? c.narrow : c.wide);
+    }
+    function clipPos(i) {
+      var c = PLAYLIST[i];
+      return (typeof c !== "string" && NARROW.matches && c.narrowPos) || ""; // "" = CSS default
+    }
+    function clipStart(i) {
+      var c = PLAYLIST[i];
+      return (typeof c !== "string" && NARROW.matches && c.narrowStart) || 0;
+    }
     var FADE = 1000;
     var started = false;        // has any clip actually begun playing?
     var pendingVideo = null;    // clip waiting for a user gesture to start
     var gestureArmed = false;
-
-    function isSmall() { return window.matchMedia("(max-width: 700px)").matches; }
 
     // Maximise autoplay compatibility across browsers (esp. iOS Safari).
     videos.forEach(function (v) {
@@ -152,8 +176,10 @@
 
     function cycle(layer, srcIdx) {
       var v = videos[layer], other = videos[1 - layer];
+      var startAt = clipStart(srcIdx);
       v.loop = false;
-      v.src = PLAYLIST[srcIdx];
+      v.style.objectPosition = clipPos(srcIdx);
+      v.src = clipSrc(srcIdx);
       v.load();
 
       // Reveal ONLY when the clip is genuinely playing (not merely loaded).
@@ -162,15 +188,19 @@
         started = true;
         v.classList.add("is-active");
         other.classList.remove("is-active");
-        if (srcIdx === 0 && isSmall()) { v.loop = true; return; } // phones: loop one light clip
+        // Cycle through all clips on every device (clips load one-by-one, not
+        // all at once, so data stays progressive on phones).
         var next = function () { cycle(1 - layer, (srcIdx + 1) % PLAYLIST.length); };
-        var dur = v.duration;
-        if (isFinite(dur) && dur > 0.5) setTimeout(next, Math.max(dur * 1000 - FADE, 1500));
+        var remaining = v.duration - startAt;
+        if (isFinite(remaining) && remaining > 0.5) setTimeout(next, Math.max(remaining * 1000 - FADE, 1500));
         else v.addEventListener("ended", next, { once: true });
       };
       v.addEventListener("playing", onPlaying);
 
       var start = function () {
+        // Seek before playing; the clip stays hidden until "playing", so the
+        // skipped opening frames never flash on screen.
+        if (startAt && v.currentTime < startAt) { try { v.currentTime = startAt; } catch (e) {} }
         attemptPlay(v).catch(function () {
           // Autoplay blocked — keep the hero image; retry on first interaction.
           if (srcIdx === 0) armGesture(v);
@@ -725,7 +755,15 @@
   }
   if (toggle) toggle.addEventListener("click", function () { setNav(!document.body.classList.contains("nav-open")); });
   $all("[data-close]").forEach(function (el) { el.addEventListener("click", function () { setNav(false); }); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.body.classList.contains("nav-open")) setNav(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && document.body.classList.contains("nav-open")) { setNav(false); if (toggle) toggle.focus(); }
+  });
+  // If the viewport grows to desktop while the menu is open, close it so the
+  // scroll lock never gets stuck.
+  var desktopMQ = window.matchMedia("(min-width: 900px)");
+  var onDesktop = function (e) { if (e.matches && document.body.classList.contains("nav-open")) setNav(false); };
+  if (desktopMQ.addEventListener) desktopMQ.addEventListener("change", onDesktop);
+  else if (desktopMQ.addListener) desktopMQ.addListener(onDesktop);
 
   // Menu filtering
   var chips = $all(".chip");

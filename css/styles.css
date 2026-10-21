@@ -253,59 +253,95 @@ body.nav-open .nav-toggle__bar:nth-child(2) { opacity: 0; }
 body.nav-open .nav-toggle__bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* ---------- Mobile nav ---------- */
+/* Only opacity + transform animate (GPU-composited) — no clip-path, no
+   backdrop blur — so it opens smoothly even on low-end Android phones. */
 .mobile-nav {
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: var(--bg-2);
-  background-image: radial-gradient(120% 80% at 80% 0%, rgba(255, 90, 31, 0.16), transparent 60%);
-  padding: clamp(5rem, 15vw, 7rem) var(--gutter) 3rem;
-  display: flex;
-  clip-path: inset(0 0 100% 0);
+  background:
+    radial-gradient(90% 45% at 100% 100%, rgba(255, 90, 31, 0.12), transparent 70%),
+    var(--bg);
+  padding: calc(76px + 1.25rem) var(--gutter) calc(1.5rem + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
   visibility: hidden;
-  transition: clip-path 0.55s var(--ease), visibility 0s linear 0.55s;
+  transition: opacity 0.25s var(--ease), visibility 0s linear 0.25s;
 }
 body.nav-open .mobile-nav {
-  clip-path: inset(0 0 0 0);
+  opacity: 1;
   visibility: visible;
-  transition: clip-path 0.55s var(--ease);
+  transition: opacity 0.25s var(--ease);
 }
 .mobile-nav__inner {
-  margin-top: auto;
-  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.75rem;
+  max-width: 32rem;
+  transform: translateY(-14px);
+  transition: transform 0.35s var(--ease);
 }
-.mobile-nav__list { display: flex; flex-direction: column; gap: 0.25rem; }
+body.nav-open .mobile-nav__inner { transform: none; }
+
+.mobile-nav__list { border-top: 1px solid var(--line); }
+.mobile-nav__list li { border-bottom: 1px solid var(--line); }
 .mobile-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 64px;
+  padding: 0.9rem 0.25rem;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(2.4rem, 13vw, 4rem);
-  letter-spacing: -0.02em;
+  font-size: clamp(1.6rem, 7.5vw, 2.1rem);
+  letter-spacing: -0.015em;
   line-height: 1.1;
   color: var(--ivory);
-  padding-block: 0.3rem;
   opacity: 0;
-  transform: translateY(24px);
-  transition: color 0.25s var(--ease);
+  transform: translateY(8px);
+  transition: opacity 0.25s var(--ease), transform 0.3s var(--ease), color 0.2s var(--ease);
 }
 body.nav-open .mobile-nav__link {
-  animation: navItemIn 0.5s var(--ease) forwards;
-  animation-delay: calc(0.12s * var(--i) + 0.1s);
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i) * 35ms + 40ms);
 }
-.mobile-nav__link:active { color: var(--flame); }
-@keyframes navItemIn {
-  to { opacity: 1; transform: translateY(0); }
+.mobile-nav__num {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--flame);
+  min-width: 1.6rem;
 }
-.mobile-nav__cta { align-self: flex-start; margin-top: 0.5rem; }
+.mobile-nav__link svg {
+  width: 20px; height: 20px;
+  margin-left: auto;
+  color: var(--muted-2);
+  transition: transform 0.25s var(--ease), color 0.2s;
+}
+.mobile-nav__link:hover,
+.mobile-nav__link:active { color: var(--ember); }
+.mobile-nav__link:hover svg,
+.mobile-nav__link:active svg { color: var(--ember); transform: translateX(3px); }
+
+.mobile-nav__actions { display: grid; gap: 0.7rem; }
 .mobile-nav__meta {
-  color: var(--muted);
-  font-size: 0.85rem;
-  letter-spacing: 0.1em;
+  color: var(--muted-2);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  border-top: 1px solid var(--line);
-  padding-top: 1.25rem;
+}
+
+/* While the menu is open: lock page scroll and give the header a solid
+   background (no blur recomputation over the animating overlay). */
+body.nav-open { overflow: hidden; }
+body.nav-open .site-header {
+  background: var(--bg);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom-color: var(--line);
 }
 
 /* ---------- Hero ---------- */
@@ -702,7 +738,8 @@ body.nav-open .mobile-nav__link {
 .contact__map-note { margin: 0; padding: 0.75rem 1rem; text-align: center; }
 
 /* ---------- Final CTA ---------- */
-.cta { position: relative; text-align: center; }
+/* overflow: hidden clips the oversized glow so it can never widen the page on phones */
+.cta { position: relative; text-align: center; overflow: hidden; }
 .cta__inner { position: relative; display: flex; flex-direction: column; align-items: center; }
 .cta__glow {
   position: absolute;
@@ -959,6 +996,7 @@ body.nav-open .mobile-nav__link {
   position: fixed;
   inset: 0;
   z-index: 200;
+  overflow: hidden; /* clip the off-screen panel (iOS horizontal-scroll guard) */
   visibility: hidden;
   pointer-events: none;
 }

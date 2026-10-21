@@ -24,7 +24,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Bump ?v= on every deploy so phones/browsers fetch the new files. -->
+  <link rel="stylesheet" href="css/styles.css?v=2026-10-21-6" />
 
   <!-- Restaurant structured data. NOTE: address, phone, hours and geo are SAMPLE
        placeholders and must be replaced with verified details before launch. -->
@@ -84,13 +85,16 @@
   <div class="mobile-nav" id="mobileNav" aria-hidden="true">
     <nav class="mobile-nav__inner" aria-label="Mobile">
       <ul class="mobile-nav__list">
-        <li style="--i:1"><a href="#menu" class="mobile-nav__link" data-close>Menu</a></li>
-        <li style="--i:2"><a href="#about" class="mobile-nav__link" data-close>About</a></li>
-        <li style="--i:3"><a href="#gallery" class="mobile-nav__link" data-close>Gallery</a></li>
-        <li style="--i:4"><a href="#contact" class="mobile-nav__link" data-close>Contact</a></li>
+        <li style="--i:1"><a href="#menu" class="mobile-nav__link" data-close><span class="mobile-nav__num">01</span>Menu<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li style="--i:2"><a href="#about" class="mobile-nav__link" data-close><span class="mobile-nav__num">02</span>About<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li style="--i:3"><a href="#gallery" class="mobile-nav__link" data-close><span class="mobile-nav__num">03</span>Gallery<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li style="--i:4"><a href="#contact" class="mobile-nav__link" data-close><span class="mobile-nav__num">04</span>Contact<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
       </ul>
-      <a href="#menu" class="btn btn--primary mobile-nav__cta" data-close>Order Now</a>
-      <p class="mobile-nav__meta">Nawada, Bihar · Open daily</p>
+      <div class="mobile-nav__actions">
+        <a href="#menu" class="btn btn--primary btn--block" data-close>Order Now</a>
+        <button type="button" class="btn btn--ghost btn--block" data-close data-open-cart>View Cart</button>
+      </div>
+      <p class="mobile-nav__meta">New Grill In · Nawada, Bihar</p>
     </nav>
   </div>
 
@@ -515,7 +519,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-  <script src="js/config.js" defer></script>
-  <script src="js/main.js" defer></script>
+  <script src="js/config.js?v=2026-10-21-3" defer></script>
+  <script src="js/main.js?v=2026-10-21-7" defer></script>
 </body>
 </html>
